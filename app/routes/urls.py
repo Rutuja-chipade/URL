@@ -15,7 +15,7 @@ router = APIRouter(tags=["URLs"])
 
 
 @router.post("/api/shorten", response_model=URLResponse, status_code=status.HTTP_201_CREATED)
-async def shorten_url(url_data: URLCreate, user=Depends(get_current_user)):
+async def shorten_url(url_data: URLCreate, request: Request, user=Depends(get_current_user)):
     """Shorten a URL. Supports password protection and geo-targeting. (Rate Limited: 10/min)"""
     try:
         user_id = str(user["_id"]) if user else None
@@ -29,6 +29,9 @@ async def shorten_url(url_data: URLCreate, user=Depends(get_current_user)):
                     detail="Rate limit exceeded: You can only create 10 links per minute. Please wait."
                 )
 
+        # Build base URL from request so short URLs match the actual deployed domain
+        base_url = str(request.base_url).rstrip("/")
+
         result = await create_short_url(
             original_url=url_data.original_url,
             user_id=user_id,
@@ -37,6 +40,7 @@ async def shorten_url(url_data: URLCreate, user=Depends(get_current_user)):
             password=url_data.password,
             geo_targets=url_data.geo_targets,
             tags=url_data.tags,
+            base_url=base_url,
         )
         return URLResponse(**result)
     except ValueError as e:
@@ -61,9 +65,10 @@ async def verify_link_password(short_code: str, body: URLVerifyPassword):
 
 
 @router.get("/api/user/urls", response_model=URLListResponse)
-async def list_user_urls(skip: int = 0, limit: int = 50, tag: str = None, user=Depends(get_current_user)):
+async def list_user_urls(request: Request, skip: int = 0, limit: int = 50, tag: str = None, user=Depends(get_current_user)):
     """Get all URLs for the current authenticated user. Supports filtering by tag."""
-    result = await get_user_urls(str(user["_id"]), skip=skip, limit=limit, tag=tag)
+    base_url = str(request.base_url).rstrip("/")
+    result = await get_user_urls(str(user["_id"]), skip=skip, limit=limit, tag=tag, base_url=base_url)
     return URLListResponse(**result)
 
 

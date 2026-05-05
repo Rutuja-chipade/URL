@@ -22,6 +22,7 @@ async def create_short_url(
     password: Optional[str] = None,
     geo_targets: Optional[dict[str, str]] = None,
     tags: Optional[list[str]] = None,
+    base_url: Optional[str] = None,
 ) -> dict:
     """Create a new shortened URL with optional password & geo-targeting."""
     db = get_db()
@@ -71,7 +72,7 @@ async def create_short_url(
     # Cache in Redis
     await _cache_url_doc(url_doc)
 
-    return _format_url_response(url_doc)
+    return _format_url_response(url_doc, base_url=base_url)
 
 
 async def get_url_by_short_code(short_code: str) -> Optional[dict]:
@@ -150,7 +151,7 @@ async def get_user_recent_count(user_id: str, seconds: int = 60) -> int:
     return count
 
 
-async def get_user_urls(user_id: str, skip: int = 0, limit: int = 50, tag: Optional[str] = None) -> dict:
+async def get_user_urls(user_id: str, skip: int = 0, limit: int = 50, tag: Optional[str] = None, base_url: Optional[str] = None) -> dict:
     """Get all URLs created by a user, optionally filtered by tag."""
     db = get_db()
     query = {"user_id": ObjectId(user_id)}
@@ -160,7 +161,7 @@ async def get_user_urls(user_id: str, skip: int = 0, limit: int = 50, tag: Optio
     cursor = db.urls.find(query).sort("created_at", -1).skip(skip).limit(limit)
     urls = []
     async for doc in cursor:
-        urls.append(_format_url_response(doc))
+        urls.append(_format_url_response(doc, base_url=base_url))
 
     total = await db.urls.count_documents(query)
     return {"urls": urls, "total": total}
@@ -256,9 +257,10 @@ async def _cache_url_doc(doc: dict):
     await cache_set(f"url:{doc['short_code']}", cache_data)
 
 
-def _format_url_response(doc: dict) -> dict:
+def _format_url_response(doc: dict, base_url: str = None) -> dict:
     """Format a URL mongo document into an API response."""
-    short_url = f"{settings.BASE_URL}/{doc['short_code']}"
+    base = base_url or settings.BASE_URL
+    short_url = f"{base}/{doc['short_code']}"
     return {
         "id": str(doc["_id"]),
         "original_url": doc["original_url"],

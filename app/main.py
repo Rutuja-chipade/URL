@@ -85,12 +85,12 @@ async def profile_canonical(user=Depends(get_current_user)):
     return await auth.get_profile(user)
 
 @app.post("/shorten", response_model=URLResponse, tags=["Canonical API"])
-async def shorten_canonical(url_data: URLCreate, user=Depends(get_current_user)):
-    return await urls.shorten_url(url_data, user)
+async def shorten_canonical(url_data: URLCreate, request: Request, user=Depends(get_current_user)):
+    return await urls.shorten_url(url_data, request, user)
 
 @app.get("/links", response_model=URLListResponse, tags=["Canonical API"])
-async def links_canonical(skip: int = 0, limit: int = 50, tag: str = None, user=Depends(get_current_user)):
-    return await urls.list_user_urls(skip, limit, tag, user)
+async def links_canonical(request: Request, skip: int = 0, limit: int = 50, tag: str = None, user=Depends(get_current_user)):
+    return await urls.list_user_urls(request, skip, limit, tag, user)
 
 
 # ─── Frontend Pages ───

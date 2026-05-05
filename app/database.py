@@ -14,19 +14,34 @@ redis_client = None
 async def connect_db():
     """Create database connection and set up indexes."""
     global client, db, redis_client
-    # Connect to actual MongoDB (from env or local)
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.DB_NAME]
+    
+    try:
+        print(f"[LOG] Connecting to MongoDB: {settings.MONGO_URI.split('@')[-1] if '@' in settings.MONGO_URI else settings.MONGO_URI}")
+        # Connect to actual MongoDB (from env or local)
+        client = AsyncIOMotorClient(
+            settings.MONGO_URI,
+            serverSelectionTimeoutMS=5000, # Fail fast during startup
+            connectTimeoutMS=5000
+        )
+        db = client[settings.DB_NAME]
 
-    # Create indexes for performance
-    await db.urls.create_index("short_code", unique=True)
-    await db.urls.create_index("user_id")
-    await db.urls.create_index("created_at")
-    await db.users.create_index("email", unique=True)
-    await db.analytics.create_index("url_id")
-    await db.analytics.create_index("timestamp")
+        # Verify connection
+        await client.admin.command('ping')
 
-    print(f"[OK] Connected to MongoDB: {settings.DB_NAME}")
+        # Create indexes for performance
+        await db.urls.create_index("short_code", unique=True)
+        await db.urls.create_index("user_id")
+        await db.urls.create_index("created_at")
+        await db.users.create_index("email", unique=True)
+        await db.analytics.create_index("url_id")
+        await db.analytics.create_index("timestamp")
+
+        print(f"[OK] Connected to MongoDB: {settings.DB_NAME}")
+    except Exception as e:
+        print(f"[ERROR] Could not connect to MongoDB: {e}")
+        # We don't raise here so the app can start and listen on port, 
+        # allowing Render to detect it's live and user to check logs.
+        db = None
 
     # Connect to Redis (optional – degrades gracefully)
     try:

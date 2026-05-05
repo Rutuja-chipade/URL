@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+  # ─── FastAPI Application ───
+  app:
+    build: .
+    container_name: shortify-app
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - DB_NAME=shortify_pro
+      - SECRET_KEY=${SECRET_KEY:-shortify-docker-secret-key-2024}
+      - REDIS_URL=redis://redis:6379/0
+      - BASE_URL=http://localhost:8000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./static:/app/static
+      - ./templates:/app/templates
+    restart: unless-stopped
+    networks:
+      - shortify-net
+
+  # ─── MongoDB ───
+  mongo:
+    image: mongo:7
+    container_name: shortify-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - shortify-net
+
+  # ─── Redis Cache ───
+  redis:
+    image: redis:7-alpine
+    container_name: shortify-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - shortify-net
+
+volumes:
+  mongo-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  shortify-net:
+    driver: bridge

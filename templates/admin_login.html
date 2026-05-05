@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Login to Shortify Pro.">
+    <title>Admin Login – Shortify Pro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>👑</text></svg>">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">👑</div>
+                <span>Shortify Admin</span>
+            </a>
+            <div class="navbar-nav">
+                <div id="authNav"></div>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Form -->
+    <div class="auth-page">
+        <div class="auth-card" style="border-top: 4px solid var(--danger);">
+            <h2 style="color:var(--danger);">Admin Access</h2>
+            <p class="auth-subtitle">Sign in to access system administration</p>
+
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Admin Email</label>
+                    <input type="email" id="loginEmail" placeholder="admin@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter admin password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="background:var(--danger);">
+                    <span class="btn-text">Access Portal</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Back to <a href="/">Landing Page</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        // Set a flag so app.js knows this is the admin portal
+        window.isAdminPortal = true;
+    </script>
+</body>
+</html>

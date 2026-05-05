@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortify Pro - Admin Dashboard</title>
+    <!-- Use standard fonts and icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --sidebar-bg: rgba(20, 22, 30, 0.4);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #8a2be2;
+            --primary-glow: rgba(138, 43, 226, 0.4);
+            --secondary: #00d2ff;
+            --text-main: #f0f0f0;
+            --text-muted: #a0aab2;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --glass-blur: blur(16px);
+        }
+
+        body.light-theme {
+            --bg-color: #f4f6f9;
+            --sidebar-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text-main: #2c3e50;
+            --text-muted: #6c757d;
+        }
+        body.light-theme .glass-card { background: rgba(255,255,255,0.7); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        body.light-theme .topbar { background: rgba(255,255,255,0.9); }
+        body.light-theme .glass-input { background: #fff; color: #333; border: 1px solid #ddd; }
+        body.light-theme .glass-table th, body.light-theme .glass-table td { border-bottom: 1px solid #eee; }
+        body.light-theme .nav-item:hover, body.light-theme .nav-item.active { background: rgba(0,0,0,0.05); }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-color) 0%, #1a1025 50%, #0d1b2a 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--card-border);
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            z-index: 100;
+        }
+
+        .brand {
+            padding: 0 24px 30px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+            box-shadow: inset 3px 0 0 var(--primary);
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            margin-bottom: 20px;
+            color: var(--danger);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Topbar */
+        .topbar {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(11, 12, 16, 0.2);
+            backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 8px 16px;
+            width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            margin-left: 10px;
+            outline: none;
+            width: 100%;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 40px;
+            flex: 1;
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.purple { background: rgba(138, 43, 226, 0.2); color: var(--primary); }
+        .stat-icon.blue { background: rgba(0, 210, 255, 0.2); color: var(--secondary); }
+        .stat-icon.green { background: rgba(46, 213, 115, 0.2); color: var(--success); }
+        .stat-icon.orange { background: rgba(255, 159, 67, 0.2); color: #ff9f43; }
+
+        .stat-details h3 {
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .stat-details p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .glass-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 14px 16px;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .glass-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: rgba(138, 43, 226, 0.1);
+            box-shadow: none;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .glass-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .glass-table th, .glass-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .glass-table th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .glass-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active { background: rgba(46, 213, 115, 0.2); color: var(--success); }
+        .status-blocked { background: rgba(255, 71, 87, 0.2); color: var(--danger); }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-right: 12px;
+            transition: color 0.3s;
+        }
+
+        .action-btn:hover { color: var(--text-main); }
+        .action-btn.edit:hover { color: var(--secondary); }
+        .action-btn.delete:hover { color: var(--danger); }
+
+        /* Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        /* Mobile sidebar overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Mobile Hamburger */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 101;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 0 20px;
+                gap: 16px;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .search-bar {
+                width: auto;
+                flex: 1;
+                max-width: 250px;
+            }
+
+            .page-content {
+                padding: 20px;
+            }
+
+            .admin-profile {
+                gap: 8px;
+            }
+
+            .admin-profile .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+
+            .admin-profile > div:first-child {
+                display: none; /* Hide text on small mobile screens */
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-rocket"></i> Shortify Pro
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="switchSection('dashboard', this)">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </li>
+            <li class="nav-item" onclick="switchSection('shortener', this)">
+                <i class="fa-solid fa-link"></i> URL Shortener
+            </li>
+            <li class="nav-item" onclick="switchSection('links', this)">
+                <i class="fa-solid fa-list-check"></i> Manage Links
+            </li>
+            <li class="nav-item" onclick="switchSection('analytics', this)">
+                <i class="fa-solid fa-chart-line"></i> Analytics
+            </li>
+            <li class="nav-item" onclick="switchSection('users', this)">
+                <i class="fa-solid fa-users"></i> Users
+            </li>
+            <li class="nav-item" onclick="switchSection('reports', this)">
+                <i class="fa-solid fa-file-export"></i> Reports
+            </li>
+            <li class="nav-item" onclick="switchSection('bulkUploadSection', this)">
+                <i class="fa-solid fa-upload"></i> Bulk Upload
+            </li>
+            <li class="nav-item" onclick="switchSection('settings', this)">
+                <i class="fa-solid fa-gear"></i> Settings
+            </li>
+            <li class="nav-item logout-btn" onclick="logoutAdmin()">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <header class="topbar">
+            <button class="mobile-toggle" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <button class="theme-toggle" onclick="toggleAdminTheme()" style="background:none;border:none;color:var(--text-main);font-size:1.5rem;cursor:pointer;margin-left:16px;" id="themeToggleBtn">🌙</button>
+            <div class="search-bar">
+                <i class="fa-solid fa-search text-muted"></i>
+                <input type="text" placeholder="Search URLs, users, or reports...">
+            </div>
+            <div class="admin-profile">
+                <div style="text-align: right;">
+                    <div style="font-weight: 600;">System Admin</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">admin@shortify.com</div>
+                </div>
+                <div class="avatar">A</div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div class="page-content">
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <h1 class="section-header">Dashboard Overview</h1>
+                
+                <div class="stats-grid">
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon purple"><i class="fa-solid fa-link"></i></div>
+                        <div class="stat-details">
+                            <h3 id="adminStatUrls">...</h3>
+                            <p>Total URLs Created</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon blue"><i class="fa-solid fa-hand-pointer"></i></div>
+                        <div class="stat-details">
+                            <h3 id="adminStatClicks">...</h3>
+                            <p>Total Clicks</p>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-details">
+                            <h3 id="adminStatUsers">...</h3>
+                            <p>Active Users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px; font-weight: 500;">Traffic Overview</h3>
+                        <canvas id="trafficChart" height="100"></canvas>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px; font-weight: 500;">Recent Activity</h3>
+                        <div style="color:var(--text-muted); font-size:0.9rem; line-height: 2;">
+                            <p>🟢 <b>john.doe</b> mapped a new alias.</p>
+                            <p>🔵 <b>admin</b> exported a report.</p>
+                            <p>🟢 <b>sarah.w</b> joined the platform.</p>
+                            <p>🔴 <b>spam_user</b> was blocked.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- URL Shortener Section -->
+            <section id="shortener" class="content-section">
+                <h1 class="section-header">Quick Shortener</h1>
+                <div class="glass-card" style="max-width: 600px;">
+                    <form onsubmit="event.preventDefault(); alert('Short URL Generated!');">
+                        <div class="form-group">
+                            <label>Long URL</label>
+                            <input type="url" class="glass-input" placeholder="https://example.com/very/long/url/path..." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Custom Alias (Optional)</label>
+                            <input type="text" class="glass-input" placeholder="e.g., my-campaign">
+                        </div>
+                        <button type="submit" class="btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Short URL</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Manage Links Section -->
+            <section id="links" class="content-section">
+                <h1 class="section-header">Manage Links</h1>
+                <div class="glass-card">
+                    <div class="table-responsive">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Short URL</th>
+                                    <th>Original URL</th>
+                                    <th>Clicks</th>
+                                    <th>Date Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLinksBody">
+                                <!-- Live URLs will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics" class="content-section">
+                <h1 class="section-header">Deep Analytics</h1>
+                <div class="charts-grid" style="margin-bottom: 24px;">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px;">Clicks Over Time</h3>
+                        <canvas id="analyticsChart" height="120"></canvas>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px;">Device Distribution</h3>
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <div>Desktop <span style="float:right; color:var(--primary);">65%</span></div>
+                            <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px;"><div style="width:65%; height:100%; background:var(--primary); border-radius:4px;"></div></div>
+                            <div>Mobile <span style="float:right; color:var(--secondary);">30%</span></div>
+                            <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px;"><div style="width:30%; height:100%; background:var(--secondary); border-radius:4px;"></div></div>
+                            <div>Tablet <span style="float:right; color:var(--success);">5%</span></div>
+                            <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px;"><div style="width:5%; height:100%; background:var(--success); border-radius:4px;"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="content-section">
+                <h1 class="section-header">User Management</h1>
+                <div class="glass-card">
+                    <div class="table-responsive">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersBody">
+                                <!-- Live users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="content-section">
+                <h1 class="section-header">Export Reports</h1>
+                <div class="glass-card" style="max-width: 600px;">
+                    <form onsubmit="handleReportExport(event, 'csv')">
+                        <div class="form-group">
+                            <label>Report Type</label>
+                            <select class="glass-input" id="reportType">
+                                <option value="users" style="color:#000;">User Activity Report (All Users)</option>
+                                <option value="urls" style="color:#000;">Link Performance Report (All URLs)</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:16px;">
+                            <button type="submit" class="btn"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                            <button type="button" class="btn btn-outline" onclick="handleReportExport(event, 'pdf')"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Bulk Upload Section -->
+            <section id="bulkUploadSection" class="content-section">
+                <h1 class="section-header">Bulk URL Upload</h1>
+                <div class="glass-card" style="max-width: 800px; margin-bottom: 24px;">
+                    <form id="bulkUploadForm" onsubmit="submitBulkUpload(event)">
+                        <div class="form-group">
+                            <label>Upload CSV File</label>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">File must contain a column named <b>url</b> with the long URLs to shorten.</p>
+                            <input type="file" id="bulkCsvFile" accept=".csv" class="glass-input" required>
+                        </div>
+                        <button type="submit" class="btn" id="bulkUploadBtn"><i class="fa-solid fa-upload"></i> Upload & Process Links</button>
+                    </form>
+                </div>
+                
+                <div class="glass-card" style="display:none;" id="bulkResultsCard">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="font-weight:500;">Processing Results</h3>
+                        <button class="btn btn-outline" onclick="downloadBulkResultsCSV()"><i class="fa-solid fa-download"></i> Download Results as CSV</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="glass-table">
+                            <thead>
+                                <tr>
+                                    <th>Long URL</th>
+                                    <th>Short URL</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkResultsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="content-section">
+                <h1 class="section-header">System Settings</h1>
+                <div class="glass-card" style="max-width: 600px;">
+                    <div class="form-group">
+                        <label>Default URL Expiry (Days)</label>
+                        <input type="number" class="glass-input" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Custom Domain</label>
+                        <input type="text" class="glass-input" value="shortify.link">
+                    </div>
+                    <div class="form-group">
+                        <label>Allow Public Registration</label>
+                        <select class="glass-input">
+                            <option style="color:#000;" selected>Yes</option>
+                            <option style="color:#000;">No (Invite Only)</option>
+                        </select>
+                    </div>
+                    <button class="btn"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+
+        // Section Switching Logic
+        function switchSection(sectionId, element) {
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            // Update sections
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            // Close sidebar on mobile after navigating
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('open');
+                document.querySelector('.sidebar-overlay').classList.remove('active');
+            }
+        }
+
+        // Initialize Charts
+        window.onload = function() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0aab2' } },
+                    x: { grid: { display: false }, ticks: { color: '#a0aab2' } }
+                }
+            };
+
+            // Traffic Chart (Dashboard)
+            const ctxTraffic = document.getElementById('trafficChart').getContext('2d');
+            new Chart(ctxTraffic, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Clicks',
+                        data: [1200, 1900, 3000, 5000, 4200, 3800, 5420],
+                        borderColor: '#8a2be2',
+                        backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Analytics Chart (Analytics Section)
+            const ctxAnalytics = document.getElementById('analyticsChart').getContext('2d');
+            new Chart(ctxAnalytics, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Created URLs',
+                        data: [500, 800, 1200, 1500, 2000, 2400],
+                        backgroundColor: '#00d2ff',
+                        borderRadius: 6
+                    }]
+                },
+                options: chartOptions
+            });
+        };
+
+        // Live Data Fetching
+        async function loadAdminData() {
+            const token = localStorage.getItem('shortify_token');
+            if (!token) return;
+
+            const headers = { 'Authorization': `Bearer ${token}` };
+
+            // 1. Fetch Stats
+            try {
+                const statsRes = await fetch('/api/admin/stats', { headers });
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    document.getElementById('adminStatUrls').textContent = stats.total_urls.toLocaleString();
+                    document.getElementById('adminStatClicks').textContent = stats.total_clicks.toLocaleString();
+                    document.getElementById('adminStatUsers').textContent = stats.total_users.toLocaleString();
+                }
+            } catch(e) { console.error('Stats fetch error:', e); }
+
+            // 2. Fetch URLs
+            try {
+                const urlsRes = await fetch('/api/admin/urls', { headers });
+                if (urlsRes.ok) {
+                    const data = await urlsRes.json();
+                    const tbody = document.getElementById('adminLinksBody');
+                    tbody.innerHTML = '';
+                    data.urls.forEach(url => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><a href="${url.short_url}" target="_blank" style="color:var(--secondary)">${url.short_code}</a></td>
+                                <td>${url.original_url.substring(0, 40)}${url.original_url.length > 40 ? '...' : ''}</td>
+                                <td>${url.total_clicks || 0}</td>
+                                <td>${new Date(url.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <button class="action-btn delete" onclick="adminDeleteUrl('${url.id}')" title="Delete URL"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch(e) { console.error('URLs fetch error:', e); }
+
+            // 3. Fetch Users
+            try {
+                const usersRes = await fetch('/api/admin/users', { headers });
+                if (usersRes.ok) {
+                    const users = await usersRes.json();
+                    const tbody = document.getElementById('adminUsersBody');
+                    tbody.innerHTML = '';
+                    users.forEach(user => {
+                        const statusBadge = user.is_admin 
+                            ? '<span class="status-badge status-active">Admin</span>' 
+                            : '<span class="status-badge" style="background:rgba(255,255,255,0.1); color:#fff">User</span>';
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>${user.name}</strong></td>
+                                <td>${user.email}</td>
+                                <td>${user.is_admin ? 'Admin' : 'User'}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    ${user.is_admin 
+                                        ? '<button class="action-btn" disabled style="opacity:0.3; cursor:not-allowed;" title="Cannot delete Administrators"><i class="fa-solid fa-ban"></i></button>' 
+                                        : `<button class="action-btn delete" onclick="adminDeleteUser('${user.id}')" title="Delete User"><i class="fa-solid fa-ban"></i></button>`}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch(e) { console.error('Users fetch error:', e); }
+        }
+
+        async function adminDeleteUrl(id) {
+            if(!confirm('Are you sure you want to completely delete this URL from the system?')) return;
+            const token = localStorage.getItem('shortify_token');
+            try {
+                await fetch(`/api/admin/url/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                loadAdminData();
+            } catch(e) {}
+        }
+
+        async function adminDeleteUser(id) {
+            if(!confirm('Are you sure you want to delete this user AND all of their URLs/Analytics? This cannot be undone.')) return;
+            const token = localStorage.getItem('shortify_token');
+            try {
+                await fetch(`/api/admin/user/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                loadAdminData();
+            } catch(e) {}
+        }
+
+        // --- Logout Fix ---
+        function logoutAdmin() {
+            localStorage.removeItem('shortify_token');
+            window.location.href = '/'; 
+        }
+
+        // --- Theme Toggle ---
+        function toggleAdminTheme() {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            document.getElementById('themeToggleBtn').innerHTML = isLight ? '☀️' : '🌙';
+            localStorage.setItem('admin_theme', isLight ? 'light' : 'dark');
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('admin_theme') === 'light') {
+            document.body.classList.add('light-theme');
+            document.getElementById('themeToggleBtn').innerHTML = '☀️';
+        }
+
+        // --- Bulk Upload Logic ---
+        let currentBulkResults = [];
+
+        async function submitBulkUpload(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('shortify_token');
+            const fileInput = document.getElementById('bulkCsvFile');
+            const btn = document.getElementById('bulkUploadBtn');
+            
+            if(!fileInput.files[0]) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                const res = await fetch('/api/admin/urls/bulk-upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                
+                const data = await res.json();
+                if(res.ok) {
+                    currentBulkResults = data.results;
+                    renderBulkResults();
+                    loadAdminData(); // Refresh dashboard stats
+                } else {
+                    alert('Error: ' + (data.detail || 'Failed to upload'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-upload"></i> Upload & Process Links';
+                fileInput.value = '';
+            }
+        }
+
+        function renderBulkResults() {
+            const card = document.getElementById('bulkResultsCard');
+            const tbody = document.getElementById('bulkResultsBody');
+            tbody.innerHTML = '';
+            
+            card.style.display = 'block';
+            
+            currentBulkResults.forEach(item => {
+                let statusColor = "var(--text-main)";
+                if(item.status === 'success') statusColor = "var(--success)";
+                if(item.status === 'skipped') statusColor = "#ff9f43";
+                if(item.status === 'error') statusColor = "var(--danger)";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.original_url}</td>
+                        <td>${item.short_url !== '-' ? `<a href="${item.short_url}" target="_blank" style="color:var(--secondary)">${item.short_url}</a>` : '-'}</td>
+                        <td style="color:${statusColor}; font-weight:600; text-transform:capitalize;">${item.status}</td>
+                        <td>${item.message}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function downloadBulkResultsCSV() {
+            if(!currentBulkResults || currentBulkResults.length === 0) return;
+            
+            const headers = ['Original URL', 'Short URL', 'Status', 'Message'];
+            const rows = currentBulkResults.map(r => [r.original_url, r.short_url, r.status, r.message]);
+            
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\n"
+                + rows.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
+                
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "bulk_upload_results.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Export Reports (PDF/CSV) ---
+        async function handleReportExport(e, format) {
+            e.preventDefault();
+            const type = document.getElementById('reportType').value;
+            const token = localStorage.getItem('shortify_token');
+            if(!token) return;
+
+            try {
+                // Fetch the entire dataset for export
+                const res = await fetch(`/api/admin/${type}?limit=10000`, { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                const data = await res.json();
+                
+                let records = [];
+                let headers = [];
+
+                if (type === 'users') {
+                    records = data; // backend returns array for /users
+                    headers = ['Name', 'Email', 'Role', 'Date Joined'];
+                    records = records.map(u => [u.name, u.email, u.role, new Date(u.created_at).toLocaleDateString()]);
+                } else if (type === 'urls') {
+                    records = data.urls; // backend returns {urls: [...]}
+                    headers = ['Short Code', 'Original URL', 'Clicks', 'Date Created'];
+                    records = records.map(u => [u.short_code, u.original_url, u.total_clicks, new Date(u.created_at).toLocaleDateString()]);
+                }
+
+                if (format === 'csv') {
+                    const csvContent = "data:text/csv;charset=utf-8," 
+                        + headers.join(",") + "\n"
+                        + records.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
+                        
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodeURI(csvContent));
+                    link.setAttribute("download", `shortify_pro_${type}_report.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                } else if (format === 'pdf') {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    doc.text(`Shortify Pro - ${type === 'users' ? 'User Activity' : 'Link Performance'} Report`, 14, 15);
+                    doc.autoTable({
+                        head: [headers],
+                        body: records,
+                        startY: 25,
+                        styles: { fontSize: 8 },
+                        headStyles: { fillColor: [138, 43, 226] }
+                    });
+                    doc.save(`shortify_pro_${type}_report.pdf`);
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Failed to generate report.');
+            }
+        }
+
+        // Initialize Live Data fetching once page runs
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminData();
+        });
+
+    </script>
+</body>
+</html>

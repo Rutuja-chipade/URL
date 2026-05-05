@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shortify Pro – Cloud-based URL shortener with analytics, geo-targeting, password protection, and real-time WebSocket tracking.">
+    <title>Shortify Pro – Smart URL Shortener with Analytics</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⚡</text></svg>">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">⚡</div>
+                <span>Shortify Pro</span>
+            </a>
+            <div class="navbar-nav">
+                <div id="authNav"></div>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">⚡ Fast • Secure • Geo-Smart • Real-Time</div>
+            <h1>Shorten Your Links,<br><span class="gradient-text">Amplify Your Reach</span></h1>
+            <p>Create powerful short URLs with geo-targeting, password protection, real-time analytics, and Redis-powered caching.</p>
+
+            <!-- Action Call -->
+            <div style="margin-top: 40px; margin-bottom: 20px;">
+                <a href="/login" class="btn btn-primary" style="font-size: 1.15rem; padding: 14px 36px; display: inline-block;">Get Started - Login to Shorten Links ⚡</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Why Choose Shortify Pro?</h2>
+            <p class="section-subtitle">Enterprise-grade URL management with advanced intelligence</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Redis-Powered Speed</h3>
+                    <p>Hot short codes are cached in Redis for sub-millisecond lookups. Database is only hit on cache miss.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Geo-Targeted Redirects</h3>
+                    <p>Route visitors to different URLs based on their country. Perfect for multi-region campaigns and localization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Password Protection</h3>
+                    <p>Lock sensitive links behind a password. Only people with the password can access the destination.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📡</div>
+                    <h3>Real-Time Analytics</h3>
+                    <p>Watch clicks appear live on your dashboard via WebSockets. No page refresh needed.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🐳</div>
+                    <h3>Docker Ready</h3>
+                    <p>One-command deployment with Docker Compose. FastAPI + MongoDB + Redis all containerized.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Rich Analytics</h3>
+                    <p>Track clicks, locations, devices, and browsers. Interactive charts and CSV export included.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚫</div>
+                    <h3>Anti-Abuse Rate Limiting</h3>
+                    <p>Built-in security to prevent system abuse. Limits link creation to 10 per minute per user to ensure stability.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏷️</div>
+                    <h3>Smart Tagging & Filtering</h3>
+                    <p>Organize your links with custom tags like 'work' or 'personal'. Filter your collection effortlessly by category.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Shortify Pro v2.0 – Built with ❤️ using FastAPI, MongoDB & Redis</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

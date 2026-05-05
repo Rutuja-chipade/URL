@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your Shortify Pro account to start shortening URLs and tracking analytics.">
+    <title>Register – Shortify Pro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⚡</text></svg>">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">⚡</div>
+                <span>Shortify Pro</span>
+            </a>
+            <div class="navbar-nav">
+                <div id="authNav"></div>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Register Form -->
+    <div class="auth-page">
+        <div class="auth-card">
+            <h2>Create Account</h2>
+            <p class="auth-subtitle">Start shortening and tracking your links</p>
+
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="regName">Full Name</label>
+                    <input type="text" id="regName" placeholder="John Doe" required minlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email Address</label>
+                    <input type="email" id="regEmail" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" placeholder="Minimum 6 characters" required minlength="6">
+                </div>
+                
+                <div class="form-group" style="margin-top: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: var(--text-secondary);">
+                        <input type="checkbox" id="regIsAdminToggle" onchange="document.getElementById('adminSecretGroup').style.display = this.checked ? 'block' : 'none'">
+                        Register as Administrator
+                    </label>
+                </div>
+
+                <div class="form-group" id="adminSecretGroup" style="display: none; margin-top: 10px;">
+                    <label for="regAdminSecret" style="color: var(--danger);">Admin Secret Code</label>
+                    <input type="password" id="regAdminSecret" placeholder="Enter secret code to register as admin">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">
+                    <span class="btn-text">Create Account</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="/login">Sign in</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

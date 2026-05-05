@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shortify Pro Dashboard – Manage URLs with real-time analytics, geo-targeting, and password protection.">
+    <title>Dashboard – Shortify Pro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⚡</text></svg>">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">⚡</div>
+                <span>Shortify Pro</span>
+            </a>
+            <div class="navbar-nav">
+                <div id="authNav"></div>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="container">
+        <div class="dashboard-layout">
+            <!-- Page Header -->
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                <div>
+                    <h1 style="font-size:1.8rem; font-weight:800;">Dashboard</h1>
+                    <p style="color:var(--text-secondary); font-size:0.95rem;">
+                        Manage your links and track performance
+                        <span id="wsStatus" class="ws-status ws-disconnected" title="Real-time connection status">● Connecting...</span>
+                    </p>
+                </div>
+                <a href="/shortener" class="btn btn-primary">+ Create New Link</a>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon purple">🔗</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statTotalUrls">0</div>
+                        <div class="stat-label">Total Links</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">👆</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statTotalClicks">0</div>
+                        <div class="stat-label">Total Clicks</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statActiveUrls">0</div>
+                        <div class="stat-label">Active Links</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">📈</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="statAvgClicks">0</div>
+                        <div class="stat-label">Avg. Clicks/Link</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Activity Feed -->
+            <div class="chart-card" id="liveFeedCard">
+                <div class="chart-header">
+                    <h3 class="chart-title">📡 Live Activity Feed</h3>
+                    <span class="live-pulse" id="livePulse">● LIVE</span>
+                </div>
+                <div id="liveFeed" class="live-feed">
+                    <div class="empty-state" style="padding:20px;">
+                        <p style="font-size:0.88rem;">Waiting for clicks... Real-time events will appear here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- URL Table -->
+            <div class="url-table-card">
+                <div class="table-header">
+                    <h2 class="table-title">Your Links</h2>
+                    <div class="tag-filter-container">
+                        <span style="font-size:0.85rem; font-weight:600; color:var(--text-tertiary);">Filter by Tag:</span>
+                        <select id="tagListFilter" class="tag-select" onchange="filterByTag(this.value)">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="url-table">
+                        <thead>
+                            <tr>
+                                <th>Original URL</th>
+                                <th>Short Code</th>
+                                <th>Tags</th>
+                                <th>Clicks</th>
+                                <th>Features</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="urlTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding:40px; color:var(--text-tertiary);">
+                                    Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div class="analytics-modal" id="analyticsModal" onclick="if(event.target===this)closeAnalytics()">
+        <div class="analytics-content">
+            <div class="analytics-header">
+                <div>
+                    <h2 style="font-size:1.3rem; font-weight:700;">Link Analytics</h2>
+                    <p id="analyticsOriginalUrl" style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;"></p>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button class="btn btn-secondary btn-sm" id="downloadCsvBtn">📥 Export CSV</button>
+                    <button class="close-modal" onclick="closeAnalytics()">✕</button>
+                </div>
+            </div>
+
+            <!-- Analytics Stats -->
+            <div class="stats-row" style="margin-bottom:24px;">
+                <div class="stat-card">
+                    <div class="stat-icon purple">👆</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="analyticsTotalClicks">0</div>
+                        <div class="stat-label">Total Clicks</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">👤</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="analyticsUniqueVisitors">0</div>
+                        <div class="stat-label">Unique Visitors</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">🏷️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="analyticsShortCode" style="font-size:1.1rem;">-</div>
+                        <div class="stat-label">Short Code</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Click Trend Chart -->
+            <div class="chart-card" style="margin-bottom:24px;">
+                <div class="chart-header">
+                    <h3 class="chart-title">Click Trends</h3>
+                </div>
+                <div style="height:250px;">
+                    <canvas id="clickTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid" style="margin-bottom:24px;">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Browsers</h3>
+                    </div>
+                    <div style="height:220px;">
+                        <canvas id="browserChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Devices</h3>
+                    </div>
+                    <div style="height:220px;">
+                        <canvas id="deviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Chart -->
+            <div class="chart-card" style="margin-bottom:24px;">
+                <div class="chart-header">
+                    <h3 class="chart-title">Top Locations</h3>
+                </div>
+                <div style="height:200px;">
+                    <canvas id="locationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Clicks -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">Recent Clicks</h3>
+                </div>
+                <div class="recent-clicks-list" id="recentClicksList">
+                    <div class="empty-state"><p>Loading...</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Shortify Pro v2.0 – Built with ❤️ using FastAPI, MongoDB & Redis</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+            connectDashboardWebSocket();
+        });
+    </script>
+</body>
+</html>

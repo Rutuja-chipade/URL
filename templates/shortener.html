@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create short URLs with password protection and geo-targeting.">
+    <title>Shortener – Shortify Pro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⚡</text></svg>">
+    <style>
+        /* Prominent QR code */
+        .qr-result-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 24px 0;
+            gap: 12px;
+        }
+        .qr-big {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            border: 3px solid var(--primary-light, #7c3aed33);
+            box-shadow: 0 8px 32px rgba(124,58,237,0.18);
+            background: #fff;
+            padding: 8px;
+        }
+        .qr-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+        }
+        /* Feature config buttons */
+        .config-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            justify-content: center;
+        }
+        .config-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-md, 8px);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .config-btn-password {
+            background: rgba(245,158,11,0.1);
+            color: #f59e0b;
+            border-color: rgba(245,158,11,0.3);
+        }
+        .config-btn-password:hover {
+            background: rgba(245,158,11,0.2);
+            transform: translateY(-1px);
+        }
+        .config-btn-geo {
+            background: rgba(14,165,233,0.1);
+            color: #0ea5e9;
+            border-color: rgba(14,165,233,0.3);
+        }
+        .config-btn-geo:hover {
+            background: rgba(14,165,233,0.2);
+            transform: translateY(-1px);
+        }
+        .result-divider {
+            border: none;
+            border-top: 1px dashed var(--border-light);
+            margin: 20px 0 0;
+        }
+        .config-section-label {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            margin-bottom: 10px;
+            margin-top: 16px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">⚡</div>
+                <span>Shortify Pro</span>
+            </a>
+            <div class="navbar-nav">
+                <div id="authNav"></div>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="container" style="max-width: 700px; padding-top: 40px; padding-bottom: 40px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 2rem; font-weight: 800;">Create Short Link</h1>
+            <p style="color: var(--text-secondary); font-size: 1rem; margin-top: 8px;">Shorten, protect, and route your URLs</p>
+        </div>
+
+        <!-- URL Input Card -->
+        <div class="url-input-card" style="margin: 0 auto; box-shadow: var(--shadow-lg);">
+            <form onsubmit="handleShorten(event)">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔗</span>
+                        <input type="url" id="urlInput" placeholder="Paste your long URL here..." required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="shortenBtn">
+                        <span class="btn-text">Shorten ⚡</span>
+                        <div class="spinner"></div>
+                    </button>
+                </div>
+                <div class="options-row">
+                    <div class="input-wrapper">
+                        <input type="text" id="aliasInput" placeholder="Custom alias (optional)" pattern="[a-zA-Z0-9_-]+" title="Letters, numbers, hyphens and underscores only">
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" id="expiryInput" placeholder="Expiry (days)" min="1" max="365">
+                    </div>
+                    <div class="input-wrapper" style="flex: 2; min-width: 250px;">
+                        <input type="text" id="tagsInput" placeholder="Tags (e.g. work, personal, code)">
+                    </div>
+                </div>
+            </form>
+
+            <!-- Result Card -->
+            <div class="result-card" id="resultCard">
+
+                <!-- QR Code: Big, centered, prominent -->
+                <div class="qr-result-wrapper">
+                    <img id="qrCode" src="" alt="QR Code" class="qr-big" style="display:none;">
+                    <span class="qr-label" id="qrLabel" style="display:none;">Scan to visit your short link</span>
+                    <a id="qrDownloadBtn" href="#" download="shortify-qr.png" class="btn btn-secondary btn-sm" style="display:none; font-size:0.8rem;">⬇ Download QR</a>
+                </div>
+
+                <!-- Short URL -->
+                <div class="result-url">
+                    <a href="#" target="_blank" id="shortUrlText" class="short-url"></a>
+                    <button onclick="copyShortUrl()" class="copy-btn" id="copyBtn">📋 Copy</button>
+                </div>
+
+                <!-- Feature Badges -->
+                <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+                    <span id="resultBadgePassword" style="display:none; font-size:0.78rem; padding:4px 10px; background:rgba(245,158,11,0.1); color:#f59e0b; border-radius:100px; font-weight:600;">🔒 Password Protected</span>
+                    <span id="resultBadgeGeo" style="display:none; font-size:0.78rem; padding:4px 10px; background:rgba(14,165,233,0.1); color:#0ea5e9; border-radius:100px; font-weight:600;">🌍 Geo-Targeted</span>
+                </div>
+
+                <!-- Advanced Feature Config Buttons -->
+                <hr class="result-divider">
+                <p class="config-section-label">Advanced Features – Configure on Dedicated Pages</p>
+                <div class="config-actions">
+                    <a id="configPasswordBtn" href="#" class="config-btn config-btn-password">
+                        🔒 Password Protect Link
+                    </a>
+                    <a id="configGeoBtn" href="#" class="config-btn config-btn-geo">
+                        🌍 Geo-Targeted Redirects
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 24px;">
+            <a href="/dashboard" class="btn btn-secondary" style="font-size: 0.9rem;">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Shortify Pro v2.0 – Built with ❤️ using FastAPI, MongoDB &amp; Redis</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js?v=2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!authToken) {
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Geo Targets - Shortify Pro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand"><div class="logo-icon">⚡</div><span>Shortify Pro</span></a>
+            <div class="navbar-nav"><div id="authNav"></div><button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button></div>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px; padding-top: 40px; padding-bottom: 40px;">
+        <h2 style="margin-bottom: 8px;">🌍 Configure Geo Targets</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">URL Code: <strong style="color:var(--primary);">{{ short_code }}</strong></p>
+
+        <div class="glass-card" style="padding: 24px; border-radius: var(--radius-lg); background: var(--bg-secondary);">
+            <form id="geoConfigForm" onsubmit="handleSaveGeo(event)">
+                <div id="geoTargetsList">
+                    <!-- Loaded dynamically -->
+                </div>
+                <button type="button" onclick="addGeoTargetUI()" class="btn btn-secondary btn-sm" style="margin-top:8px; margin-bottom:16px;">+ Add Country Rule</button>
+                
+                <div style="display: flex; gap: 12px; margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="saveGeoBtn" style="flex:1;">Save Geo Targets</button>
+                    <a href="/dashboard" class="btn btn-secondary" style="flex:1; text-align:center;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        const shortCode = "{{ short_code }}";
+        
+        let geoConfigCounter = 0;
+        function addGeoTargetUI(country = '', url = '') {
+            geoConfigCounter++;
+            const container = document.getElementById('geoTargetsList');
+            const row = document.createElement('div');
+            row.className = 'geo-target-row';
+            row.style.marginBottom = '8px';
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.id = `geoCfgRow${geoConfigCounter}`;
+            row.innerHTML = `
+                <input type="text" placeholder="Country (e.g. US)" class="geo-country" maxlength="2" value="${country}" style="width:100px; padding:10px; border:2px solid var(--border-light); border-radius:var(--radius-sm); text-transform:uppercase;">
+                <input type="url" placeholder="Redirect URL" class="geo-url" value="${url}" style="flex:1; padding:10px; border:2px solid var(--border-light); border-radius:var(--radius-sm);">
+                <button type="button" onclick="document.getElementById('geoCfgRow${geoConfigCounter}').remove()" class="btn btn-secondary" style="padding:10px; color:var(--danger);">✕</button>
+            `;
+            container.appendChild(row);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Preload existing geo targets from analytics / urls logic if we can. Note: We don't have a direct 'get single URL' endpoint besides analytics.
+            // But we can fetch dashboards to prepopulate, or simply let them override entirely. Add one blank row for now.
+            if(document.getElementById('geoTargetsList').children.length === 0) {
+                addGeoTargetUI();
+            }
+        });
+
+        async function handleSaveGeo(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveGeoBtn');
+            setLoading(btn, true);
+            
+            const rows = document.querySelectorAll('.geo-target-row');
+            let targets = {};
+            let hasAny = false;
+            rows.forEach(r => {
+                const c = r.querySelector('.geo-country').value.trim().toUpperCase();
+                const u = r.querySelector('.geo-url').value.trim();
+                if(c && u) { targets[c] = u; hasAny = true; }
+            });
+            
+            const data = { geo_targets: hasAny ? targets : null };
+
+            try {
+                const res = await fetch(`/api/url/${shortCode}/geo`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+                if(!res.ok) throw new Error(json.detail || 'Error');
+                showToast(json.message, 'success');
+                setTimeout(() => window.location.href = '/dashboard', 1000);
+            } catch(err) {
+                showToast(err.message, 'error');
+            } finally {
+                setLoading(btn, false);
+            }
+        }
+    </script>
+</body>
+</html>

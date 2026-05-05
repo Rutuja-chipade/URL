@@ -1,6 +1,7 @@
 """MongoDB async database connection using Motor + Redis cache."""
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from fastapi import HTTPException
 from app.config import get_settings
 import json
 
@@ -70,7 +71,12 @@ async def close_db():
 
 
 def get_db() -> AsyncIOMotorDatabase:
-    """Get database instance."""
+    """Get database instance. Raises error if DB is not connected."""
+    if db is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Database connection is not established. Please check your MONGO_URI environment variable."
+        )
     return db
 
 

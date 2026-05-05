@@ -40,6 +40,10 @@
                         <a href="/forgot-password" style="font-size:0.85rem; color:var(--primary);">Forgot Password?</a>
                     </div>
                     <input type="password" id="loginPassword" placeholder="Enter your password" required minlength="6" style="margin-top:8px;">
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="showPassword" onclick="togglePasswordVisibility('loginPassword')" style="width: auto; cursor: pointer;">
+                        <label for="showPassword" style="font-size: 0.85rem; cursor: pointer; color: var(--text-secondary);">Show Password</label>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <span class="btn-text">Sign In</span>

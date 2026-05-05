@@ -41,6 +41,13 @@ function updateThemeIcon(theme) {
     if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
+function togglePasswordVisibility(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.type = el.type === 'password' ? 'text' : 'password';
+    }
+}
+
 // ═══════════════════════════════
 //  AUTH
 // ═══════════════════════════════

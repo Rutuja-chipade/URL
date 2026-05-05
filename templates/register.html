@@ -41,6 +41,10 @@
                 <div class="form-group">
                     <label for="regPassword">Password</label>
                     <input type="password" id="regPassword" placeholder="Minimum 6 characters" required minlength="6">
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="showRegPassword" onclick="togglePasswordVisibility('regPassword')" style="width: auto; cursor: pointer;">
+                        <label for="showRegPassword" style="font-size: 0.85rem; cursor: pointer; color: var(--text-secondary);">Show Password</label>
+                    </div>
                 </div>
                 
                 <div class="form-group" style="margin-top: 10px;">

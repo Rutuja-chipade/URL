@@ -14,8 +14,8 @@ redis_client = None
 async def connect_db():
     """Create database connection and set up indexes."""
     global client, db, redis_client
-    from mongomock_motor import AsyncMongoMockClient
-    client = AsyncMongoMockClient(settings.MONGO_URI)
+    # Connect to actual MongoDB (from env or local)
+    client = AsyncIOMotorClient(settings.MONGO_URI)
     db = client[settings.DB_NAME]
 
     # Create indexes for performance

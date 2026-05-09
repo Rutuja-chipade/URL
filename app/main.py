@@ -10,7 +10,7 @@ Advanced modules:
   5. Docker-ready (see docker-compose.yml)
 """
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -50,6 +50,14 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.exception_handler(503)
+async def service_unavailable_handler(request: Request, exc: HTTPException):
+    return templates.TemplateResponse(
+        "503.html", 
+        {"request": request, "detail": exc.detail}, 
+        status_code=503
+    )
 
 # CORS
 app.add_middleware(

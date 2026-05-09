@@ -75,7 +75,7 @@ def get_db() -> AsyncIOMotorDatabase:
     if db is None:
         raise HTTPException(
             status_code=503,
-            detail="Database connection is not established. Please check your MONGO_URI environment variable."
+            detail="MongoDB Connection Error: The database is currently offline. If you are running locally, ensure MongoDB is started. If you want to go live, please use MongoDB Atlas and update your MONGO_URI in the .env file."
         )
     return db
 

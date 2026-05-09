@@ -27,24 +27,46 @@
         }
 
         body.light-theme {
-            --bg-color: #f4f6f9;
-            --sidebar-bg: rgba(255, 255, 255, 0.9);
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --text-main: #2c3e50;
-            --text-muted: #6c757d;
+            --bg-color: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --card-border: rgba(0, 0, 0, 0.05);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --sidebar-item-hover: rgba(138, 43, 226, 0.05);
         }
-        body.light-theme .glass-card { background: rgba(255,255,255,0.7); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        body.light-theme .topbar { background: rgba(255,255,255,0.9); }
-        body.light-theme .glass-input { background: #fff; color: #333; border: 1px solid #ddd; }
-        body.light-theme .glass-table th, body.light-theme .glass-table td { border-bottom: 1px solid #eee; }
-        body.light-theme .nav-item:hover, body.light-theme .nav-item.active { background: rgba(0,0,0,0.05); }
+
+        body.light-theme .glass-card { 
+            background: #ffffff; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        body.light-theme .topbar { 
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        body.light-theme .glass-input { 
+            background: #f1f5f9; 
+            color: #1e293b; 
+            border: 1px solid #e2e8f0; 
+        }
+        body.light-theme .glass-table th, body.light-theme .glass-table td { 
+            border-bottom: 1px solid #f1f5f9; 
+        }
+        body.light-theme .nav-item:hover, body.light-theme .nav-item.active { 
+            background: var(--sidebar-item-hover);
+            color: var(--primary);
+        }
+        body.light-theme .search-bar {
+            background: #f1f5f9;
+        }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
         }
 
         body {

@@ -45,6 +45,12 @@
                         <input type="checkbox" id="showRegPassword" onclick="togglePasswordVisibility('regPassword')" style="width: auto; cursor: pointer;">
                         <label for="showRegPassword" style="font-size: 0.85rem; cursor: pointer; color: var(--text-secondary);">Show Password</label>
                     </div>
+                    <div class="password-rules">
+                        <div class="password-rules-title">Password Requirements:</div>
+                        <div id="rule-length" class="rule-item invalid"><i></i> At least 6 characters</div>
+                        <div id="rule-upper" class="rule-item invalid"><i></i> One uppercase letter</div>
+                        <div id="rule-symbol" class="rule-item invalid"><i></i> One special symbol</div>
+                    </div>
                 </div>
                 
                 <div class="form-group" style="margin-top: 10px;">

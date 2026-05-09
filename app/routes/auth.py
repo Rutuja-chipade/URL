@@ -10,6 +10,7 @@ from app.models.schemas import (
 )
 from app.utils.security import hash_password, verify_password, create_access_token, get_current_user
 from app.database import get_db
+from app.services.email_service import send_reset_password_email
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -161,11 +162,14 @@ async def forgot_password(data: ForgotPassword):
         {"$set": {"reset_token": token, "reset_token_expiry": expiry}}
     )
     
-    # In a real app we would email this link. For our local 'big project', we return it.
+    # In a real app we would email this link.
     reset_link = f"/reset-password?token={token}"
+    email_sent = await send_reset_password_email(user["email"], reset_link)
+    
     return {
         "message": "If that email is registered, a password reset link has been sent.",
-        "demo_link": reset_link
+        "demo_link": reset_link if not email_sent else None,
+        "email_sent": email_sent
     }
 
 @router.post("/reset-password")

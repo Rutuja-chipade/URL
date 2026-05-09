@@ -16,7 +16,44 @@ let analyticsWs = null;
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     updateNavAuth();
+    
+    // Initialize password validation if fields exist
+    initPasswordValidation('regPassword');
+    initPasswordValidation('newPassword');
 });
+
+/**
+ * Live Password Validation
+ */
+function initPasswordValidation(fieldId) {
+    const passwordInput = document.getElementById(fieldId);
+    if (!passwordInput) return;
+
+    const rules = {
+        length: document.getElementById('rule-length'),
+        upper: document.getElementById('rule-upper'),
+        symbol: document.getElementById('rule-symbol')
+    };
+
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+        
+        // Length check
+        const isLongEnough = val.length >= 6;
+        rules.length.classList.toggle('valid', isLongEnough);
+        rules.length.classList.toggle('invalid', !isLongEnough);
+
+        // Uppercase check
+        const hasUpper = /[A-Z]/.test(val);
+        rules.upper.classList.toggle('valid', hasUpper);
+        rules.upper.classList.toggle('invalid', !hasUpper);
+
+        // Symbol check
+        const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+        rules.symbol.classList.toggle('valid', hasSymbol);
+        rules.symbol.classList.toggle('invalid', !hasSymbol);
+    });
+}
 
 // ═══════════════════════════════
 //  THEME

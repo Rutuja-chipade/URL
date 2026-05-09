@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Error – Shortify Pro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .error-page {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .error-card {
+            max-width: 600px;
+            padding: 40px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-xl);
+        }
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .error-title {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .error-message {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .instructions {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: left;
+            margin-bottom: 30px;
+        }
+        .instructions h4 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        .instructions code {
+            display: block;
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-card">
+            <div class="error-icon">🔌</div>
+            <h1 class="error-title">Connection Error</h1>
+            <p class="error-message">{{ detail }}</p>
+            
+            <div class="instructions">
+                <h4>How to fix this:</h4>
+                <p>1. If running locally, make sure <strong>MongoDB</strong> is installed and running.</p>
+                <p>2. If you want a cloud database, create a free cluster on <strong>MongoDB Atlas</strong>.</p>
+                <p>3. Update your <code>.env</code> file with the correct URI:</p>
+                <code>MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname</code>
+            </div>
+
+            <a href="/" class="btn btn-primary">Try Again</a>
+        </div>
+    </div>
+</body>
+</html>

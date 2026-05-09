@@ -51,12 +51,22 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-@app.exception_handler(503)
-async def service_unavailable_handler(request: Request, exc: HTTPException):
-    return templates.TemplateResponse(
-        "503.html", 
-        {"request": request, "detail": exc.detail}, 
-        status_code=503
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    """Show a nice HTML error page for 503 (database offline) on browser requests."""
+    if exc.status_code == 503:
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return templates.TemplateResponse(
+                "503.html",
+                {"request": request, "detail": exc.detail},
+                status_code=503
+            )
+    # For all other HTTP errors (or API calls), return JSON
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
     )
 
 # CORS

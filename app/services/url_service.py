@@ -89,7 +89,10 @@ async def get_url_by_short_code(short_code: str) -> Optional[dict]:
             cached["created_at"] = datetime.fromisoformat(cached["created_at"])
         if cached.get("expiry_date"):
             cached["expiry_date"] = datetime.fromisoformat(cached["expiry_date"])
-            if datetime.now(timezone.utc) > cached["expiry_date"]:
+            expiry = cached["expiry_date"]
+            if expiry.tzinfo is None:
+                expiry = expiry.replace(tzinfo=timezone.utc)
+            if datetime.now(timezone.utc) > expiry:
                 await cache_delete(f"url:{short_code}")
                 return None
         return cached
@@ -103,7 +106,10 @@ async def get_url_by_short_code(short_code: str) -> Optional[dict]:
 
     # Check expiry
     if url_doc.get("expiry_date"):
-        if datetime.now(timezone.utc) > url_doc["expiry_date"]:
+        expiry = url_doc["expiry_date"]
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expiry:
             return None
 
     # Store in cache for next time

@@ -19,3 +19,9 @@ services:
         sync: false
       - key: BASE_URL
         sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false

@@ -831,7 +831,45 @@ async function downloadCSV(urlId) {
 //  API HELPERS
 // ═══════════════════════════════
 
+function _extractErrorMessage(json) {
+    if (json.detail) {
+        if (typeof json.detail === 'string') return json.detail;
+        if (Array.isArray(json.detail)) {
+            return json.detail.map(err => {
+                const field = err.loc ? err.loc[err.loc.length - 1] : 'field';
+                return `${field}: ${err.msg}`;
+            }).join(', ');
+        }
+        return JSON.stringify(json.detail);
+    }
+    return 'Request failed';
+}
+
+function isTokenExpired(token) {
+    if (!token) return true;
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const payload = JSON.parse(jsonPayload);
+        if (payload.exp) {
+            const now = Math.floor(Date.now() / 1000);
+            return now >= payload.exp;
+        }
+        return false;
+    } catch (e) {
+        return true;
+    }
+}
+
 async function apiPost(endpoint, data) {
+    if (authToken && isTokenExpired(authToken)) {
+        showToast('Session expired. Logging out...', 'error');
+        setTimeout(logout, 1500);
+        throw new Error('Session expired');
+    }
     const headers = { 'Content-Type': 'application/json' };
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
@@ -841,27 +879,37 @@ async function apiPost(endpoint, data) {
     });
 
     const json = await res.json();
-    if (!res.ok) throw new Error(json.detail || 'Request failed');
+    if (!res.ok) throw new Error(_extractErrorMessage(json));
     return json;
 }
 
 async function apiGet(endpoint) {
+    if (authToken && isTokenExpired(authToken)) {
+        showToast('Session expired. Logging out...', 'error');
+        setTimeout(logout, 1500);
+        throw new Error('Session expired');
+    }
     const headers = {};
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const res = await fetch(`${API_BASE}${endpoint}`, { headers });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.detail || 'Request failed');
+    if (!res.ok) throw new Error(_extractErrorMessage(json));
     return json;
 }
 
 async function apiDelete(endpoint) {
+    if (authToken && isTokenExpired(authToken)) {
+        showToast('Session expired. Logging out...', 'error');
+        setTimeout(logout, 1500);
+        throw new Error('Session expired');
+    }
     const headers = {};
     if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
     const res = await fetch(`${API_BASE}${endpoint}`, { method: 'DELETE', headers });
     const json = await res.json();
-    if (!res.ok) throw new Error(json.detail || 'Request failed');
+    if (!res.ok) throw new Error(_extractErrorMessage(json));
     return json;
 }
 

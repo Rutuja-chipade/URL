@@ -3,7 +3,7 @@
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from app.models.schemas import (
     UserRegister, UserLogin, TokenResponse, UserResponse, UserRegisterAdmin,
     ForgotPassword, ResetPassword
@@ -145,7 +145,7 @@ async def get_profile(user=Depends(get_current_user)):
     )
 
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotPassword):
+async def forgot_password(data: ForgotPassword, request: Request):
     """Generate a password reset token (returns token in response for local demo)."""
     db = get_db()
     user = await db.users.find_one({"email": data.email.lower()})
@@ -162,9 +162,10 @@ async def forgot_password(data: ForgotPassword):
         {"$set": {"reset_token": token, "reset_token_expiry": expiry}}
     )
     
-    # In a real app we would email this link.
+    # Use actual request URL so emails contain the real domain, not localhost
+    base_url = str(request.base_url).rstrip("/")
     reset_link = f"/reset-password?token={token}"
-    email_sent = await send_reset_password_email(user["email"], reset_link)
+    email_sent = await send_reset_password_email(user["email"], reset_link, base_url=base_url)
     
     return {
         "message": "If that email is registered, a password reset link has been sent.",

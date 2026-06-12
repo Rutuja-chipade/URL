@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from fastapi import HTTPException
 from app.config import get_settings
 import json
+import certifi
 
 settings = get_settings()
 
@@ -19,10 +20,12 @@ async def connect_db():
     try:
         print(f"[LOG] Connecting to MongoDB: {settings.MONGO_URI.split('@')[-1] if '@' in settings.MONGO_URI else settings.MONGO_URI}")
         # Connect to actual MongoDB (from env or local)
+        # Use certifi CA bundle to fix SSL/TLS issues on Windows
         client = AsyncIOMotorClient(
             settings.MONGO_URI,
-            serverSelectionTimeoutMS=5000, # Fail fast during startup
-            connectTimeoutMS=5000
+            serverSelectionTimeoutMS=10000,  # Allow more time for Atlas
+            connectTimeoutMS=10000,
+            tlsCAFile=certifi.where(),
         )
         db = client[settings.DB_NAME]
 
@@ -39,7 +42,12 @@ async def connect_db():
 
         print(f"[OK] Connected to MongoDB: {settings.DB_NAME}")
     except Exception as e:
-        print(f"[ERROR] Could not connect to MongoDB: {e}")
+        error_msg = str(e)
+        print(f"[ERROR] Could not connect to MongoDB: {error_msg}")
+        if "TLSV1_ALERT_INTERNAL_ERROR" in error_msg or "SSL" in error_msg:
+            print("[HINT] This is usually caused by your IP not being whitelisted in MongoDB Atlas.")
+            print("[HINT] Go to MongoDB Atlas → Network Access → Add Current IP Address")
+            print("[HINT] Or add 0.0.0.0/0 to allow all IPs (not recommended for production)")
         # We don't raise here so the app can start and listen on port, 
         # allowing Render to detect it's live and user to check logs.
         db = None
@@ -75,7 +83,7 @@ def get_db() -> AsyncIOMotorDatabase:
     if db is None:
         raise HTTPException(
             status_code=503,
-            detail="MongoDB Connection Error: The database is currently offline. If you are running locally, ensure MongoDB is started. If you want to go live, please use MongoDB Atlas and update your MONGO_URI in the .env file."
+            detail="MongoDB Connection Error: The database is currently offline. If you are running locally, ensure MongoDB is started. If using MongoDB Atlas, make sure your current IP is whitelisted in Network Access settings. Go to MongoDB Atlas → Network Access → Add Current IP Address."
         )
     return db
 

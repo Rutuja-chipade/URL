@@ -69,8 +69,10 @@
             <div class="instructions">
                 <h4>How to fix this:</h4>
                 <p>1. If running locally, make sure <strong>MongoDB</strong> is installed and running.</p>
-                <p>2. If you want a cloud database, create a free cluster on <strong>MongoDB Atlas</strong>.</p>
-                <p>3. Update your <code>.env</code> file with the correct URI:</p>
+                <p>2. If using <strong>MongoDB Atlas</strong>, whitelist your IP address:</p>
+                <p style="padding-left:16px;">→ Go to <strong>MongoDB Atlas → Network Access → Add Current IP Address</strong></p>
+                <p style="padding-left:16px;">→ Or add <code style="display:inline;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:3px;">0.0.0.0/0</code> to allow all IPs</p>
+                <p>3. Make sure your <code>.env</code> file has the correct URI:</p>
                 <code>MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname</code>
             </div>
 

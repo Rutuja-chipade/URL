@@ -69,12 +69,13 @@ def _send_email_sync(to_email: str, subject: str, html_body: str) -> bool:
         return False
 
 
-async def send_reset_password_email(to_email: str, reset_link: str) -> bool:
+async def send_reset_password_email(to_email: str, reset_link: str, base_url: str = None) -> bool:
     """Send a password reset email to a user.
 
     Args:
         to_email: The recipient's email address.
         reset_link: The reset password link path (e.g., /reset-password?token=abc123).
+        base_url: The actual base URL from the request (e.g., https://your-app.onrender.com).
 
     Returns:
         True if email was sent successfully, False otherwise.
@@ -84,8 +85,8 @@ async def send_reset_password_email(to_email: str, reset_link: str) -> bool:
         print("[SMTP] ⚠️  Falling back to demo mode (reset link shown on screen).")
         return False
 
-    # Build the full reset URL using live BASE_URL
-    base = (settings.BASE_URL or "").rstrip("/")
+    # Build the full reset URL using actual request URL (not localhost)
+    base = (base_url or settings.BASE_URL or "").rstrip("/")
     full_link = f"{base}{reset_link}"
     print(f"[SMTP] Sending password reset to {to_email} — link: {full_link}")
 

@@ -13,6 +13,12 @@ import base64
 
 settings = get_settings()
 
+RESERVED_ALIASES = {
+    "login", "admin-login", "register", "dashboard", "shortener", 
+    "forgot-password", "reset-password", "admin", "protected", 
+    "static", "api", "ws", "links", "profile", "shorten"
+}
+
 
 async def create_short_url(
     original_url: str,
@@ -40,6 +46,9 @@ async def create_short_url(
 
     # Use custom alias or generate short code
     if custom_alias:
+        custom_alias = custom_alias.lower()
+        if custom_alias in RESERVED_ALIASES:
+            raise ValueError(f"Alias '{custom_alias}' is a reserved system keyword")
         existing = await db.urls.find_one({"short_code": custom_alias})
         if existing:
             raise ValueError(f"Alias '{custom_alias}' is already taken")
@@ -77,8 +86,13 @@ async def create_short_url(
 
 async def get_url_by_short_code(short_code: str) -> Optional[dict]:
     """Fetch URL document by short code with Redis cache, checking expiry."""
-    # Try Redis cache first
+    # Try Redis cache first (exact case)
     cached = await cache_get(f"url:{short_code}")
+    
+    # Try lowercase fallback if not found in cache and short_code has uppercase characters
+    if not cached and short_code.lower() != short_code:
+        cached = await cache_get(f"url:{short_code.lower()}")
+
     if cached:
         # Reconstruct ObjectId
         cached["_id"] = ObjectId(cached["_id"])
@@ -94,12 +108,17 @@ async def get_url_by_short_code(short_code: str) -> Optional[dict]:
                 expiry = expiry.replace(tzinfo=timezone.utc)
             if datetime.now(timezone.utc) > expiry:
                 await cache_delete(f"url:{short_code}")
+                await cache_delete(f"url:{short_code.lower()}")
                 return None
         return cached
 
     # Fallback to MongoDB
     db = get_db()
     url_doc = await db.urls.find_one({"short_code": short_code})
+    
+    # Try case-insensitive lookup for custom alias
+    if not url_doc and short_code.lower() != short_code:
+        url_doc = await db.urls.find_one({"short_code": short_code.lower()})
 
     if not url_doc:
         return None
